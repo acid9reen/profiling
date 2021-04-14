@@ -1,5 +1,6 @@
 import collections
 import json
+import os
 import typing as tp
 import itertools
 
@@ -28,6 +29,8 @@ def main() -> None:
     MAX_TOP_CANDIDATES: int = 10
     most_co_occurring_products: tp.Dict[str, tp.List[str]] = dict()
 
+    product_ids = product_ids[:350]
+    
     for key_1 in tqdm(product_ids, desc='outer loop'):
         candidates: tp.List[tp.Tuple[str, float]] = []
         for key_2 in product_ids: 
@@ -50,7 +53,8 @@ def main() -> None:
             for product_id, pmi in top_candidates
         ]
 
-        with open('most_co_occurring_products.txt', 'w') as outfile:
+        result_path = os.path.join('reports_n_results', 'most_co_occurring_products.txt')
+        with open(result_path, 'w') as outfile:
             json.dump(most_co_occurring_products, outfile)
 
 if __name__ == "__main__":

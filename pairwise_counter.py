@@ -18,12 +18,11 @@ class Stats(NamedTuple):
 
 
 class PairwiseCounter:
-
     def __init__(
-            self,
-            counts_matrix: sparse.csr_matrix,
-            index_mapper: Dict[Any, int],
-            total_key: Any,
+        self,
+        counts_matrix: sparse.csr_matrix,
+        index_mapper: Dict[Any, int],
+        total_key: Any,
     ):
         """
         Class for calculating some pair statistics.
@@ -71,11 +70,8 @@ class PairwiseCounter:
         stats = self.get_stats(key_1, key_2)
         if stats is None:
             return None
-        return (
-            np.log(stats.pair_count + EPS)
-            + np.log(stats.total)
-            - np.log(stats.count_1)
-            - np.log(stats.count_2)
+        return np.log(
+            ((stats.pair_count + EPS) * stats.total) / (stats.count_1 * stats.count_2)
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -95,14 +91,14 @@ class PairwiseCounter:
     def from_dict(params_dict: Dict[str, Any]):
         counts_matrix = sparse.csr_matrix(
             (
-                params_dict['counts_matrix']['data'],
-                params_dict['counts_matrix']['indices'],
-                params_dict['counts_matrix']['indptr'],
+                params_dict["counts_matrix"]["data"],
+                params_dict["counts_matrix"]["indices"],
+                params_dict["counts_matrix"]["indptr"],
             ),
-            shape=params_dict['counts_matrix']['shape'],
+            shape=params_dict["counts_matrix"]["shape"],
         )
         return PairwiseCounter(
             counts_matrix=counts_matrix,
-            index_mapper=params_dict['index_mapper'],
-            total_key=params_dict['total_key'],
+            index_mapper=params_dict["index_mapper"],
+            total_key=params_dict["total_key"],
         )

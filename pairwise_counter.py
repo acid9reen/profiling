@@ -32,6 +32,7 @@ class PairwiseCounter:
         (total_key, total_key, value)
         """
         self.counts_matrix = counts_matrix
+        self.counts_diag = counts_matrix.diagonal()
         self.index_mapper = index_mapper
         self.total_key = total_key
         total_index = index_mapper[total_key]
@@ -45,8 +46,8 @@ class PairwiseCounter:
             return None
 
         pair_count = self.counts_matrix[index_1, index_2]
-        count_1 = self.counts_matrix[index_1, index_1]
-        count_2 = self.counts_matrix[index_2, index_2]
+        count_1 = self.counts_diag[index_1]
+        count_2 = self.counts_diag[index_2]
 
         if not count_1 or not count_2:
             return None

@@ -126,3 +126,4 @@ dmypy.json
 
 reports_n_results/
 product_pairwise_counter.txt
+*.lprof

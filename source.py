@@ -53,9 +53,9 @@ def main() -> None:
             for product_id, pmi in top_candidates
         ]
 
-        result_path = os.path.join('reports_n_results', 'most_co_occurring_products_m.txt')
-        with open(result_path, 'w') as outfile:
-            json.dump(most_co_occurring_products, outfile)
+    result_path = os.path.join('reports_n_results', 'most_co_occurring_products_m.txt')
+    with open(result_path, 'w') as outfile:
+        json.dump(most_co_occurring_products, outfile)
 
 if __name__ == "__main__":
     main()

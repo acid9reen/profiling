@@ -10,6 +10,12 @@ from scipy import sparse
 EPS = 1e-100
 
 
+try:
+    profile  # throws an exception when profile isn't defined
+except NameError:
+    profile = lambda x: x  # if it's not defined simply ignore the decorator
+
+
 class Stats(NamedTuple):
     pair_count: float
     count_1: float
@@ -38,6 +44,7 @@ class PairwiseCounter:
         total_index = index_mapper[total_key]
         self.total = self.counts_matrix[total_index, total_index]
 
+    @profile
     def get_stats(self, key_1: Any, key_2: Any) -> Optional[Stats]:
         index_1 = self.index_mapper.get(key_1)
         index_2 = self.index_mapper.get(key_2)
@@ -59,6 +66,7 @@ class PairwiseCounter:
             total=float(self.total),
         )
 
+    @profile
     def calculate_pmi(self, key_1: Any, key_2: Any) -> Optional[float]:
         """
         Calculates by formula: PMI

@@ -1,8 +1,8 @@
-from typing import Tuple, Iterable, Any, Dict, Optional, NamedTuple
+from typing import Tuple, Iterable, Any, Dict, Optional, NamedTuple, List
 
 import numpy as np
 
-from scipy import sparse
+from scipy import sparse  # type: ignore
 
 
 # need for log(0) where pair_count = 0
@@ -26,7 +26,7 @@ class Stats(NamedTuple):
 class PairwiseCounter:
     def __init__(
         self,
-        counts_matrix: sparse.csr_matrix,
+        counts_matrix: Dict[Any, List[int]],
         index_mapper: Dict[Any, int],
         total_key: Any,
     ):
@@ -38,11 +38,21 @@ class PairwiseCounter:
         (total_key, total_key, value)
         """
         self.counts_matrix = counts_matrix
-        self.counts_diag = counts_matrix.diagonal()
+        self.counts_matrix_dict = dict()
+
+        row = 0
+        for ind, (column, value) in enumerate(
+            zip(self.counts_matrix["indices"], self.counts_matrix["data"])
+        ):
+            if ind >= counts_matrix["indptr"][row + 1]:
+                row += 1
+
+            self.counts_matrix_dict[(row, column)] = value
+
         self.index_mapper = index_mapper
         self.total_key = total_key
         total_index = index_mapper[total_key]
-        self.total = self.counts_matrix[total_index, total_index]
+        self.total = self.counts_matrix_dict.get((total_index, total_index), 0)
 
     @profile
     def get_stats(self, key_1: Any, key_2: Any) -> Optional[Stats]:
@@ -52,12 +62,9 @@ class PairwiseCounter:
         if index_1 is None or index_2 is None:
             return None
 
-        pair_count = self.counts_matrix[index_1, index_2]
-        count_1 = self.counts_diag[index_1]
-        count_2 = self.counts_diag[index_2]
-
-        if not count_1 or not count_2:
-            return None
+        pair_count = self.counts_matrix_dict.get((index_1, index_2), 0)
+        count_1 = self.counts_matrix_dict.get((index_1, index_1), 0)
+        count_2 = self.counts_matrix_dict.get((index_2, index_2), 0)
 
         return Stats(
             pair_count=float(pair_count),
@@ -85,10 +92,10 @@ class PairwiseCounter:
 
     def to_dict(self) -> Dict[str, Any]:
         counts_matrix_dict = dict(
-            data=self.counts_matrix.data.tolist(),
-            indices=self.counts_matrix.indices.tolist(),
-            indptr=self.counts_matrix.indptr.tolist(),
-            shape=self.counts_matrix.shape,
+            data=self.counts_matrix["data"],
+            indices=self.counts_matrix["indices"],
+            indptr=self.counts_matrix["indptr"],
+            shape=self.counts_matrix["shape"],
         )
         return dict(
             counts_matrix=counts_matrix_dict,
@@ -98,14 +105,8 @@ class PairwiseCounter:
 
     @staticmethod
     def from_dict(params_dict: Dict[str, Any]):
-        counts_matrix = sparse.csr_matrix(
-            (
-                params_dict["counts_matrix"]["data"],
-                params_dict["counts_matrix"]["indices"],
-                params_dict["counts_matrix"]["indptr"],
-            ),
-            shape=params_dict["counts_matrix"]["shape"],
-        )
+        counts_matrix = params_dict["counts_matrix"]
+
         return PairwiseCounter(
             counts_matrix=counts_matrix,
             index_mapper=params_dict["index_mapper"],
